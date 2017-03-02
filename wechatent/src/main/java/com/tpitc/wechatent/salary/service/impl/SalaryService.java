@@ -1,4 +1,4 @@
-package com.tjport.wechat.salary.service.impl;
+package com.tpitc.wechatent.salary.service.impl;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,8 +9,8 @@ import java.text.DecimalFormat;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tjport.wechat.common.utils.DbUtils;
-import com.tjport.wechat.salary.service.ISalaryService;
+import com.tpitc.wechatent.common.utils.DbUtils;
+import com.tpitc.wechatent.salary.service.ISalaryService;
 
 @Service("salaryService")
 public class SalaryService implements ISalaryService{

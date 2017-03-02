@@ -24,35 +24,38 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import com.tjport.wechat.common.spring.BaseController;
-import com.tjport.wechat.common.utils.CheckUtils;
-import com.tjport.wechat.common.utils.DbUtils;
-import com.tjport.wechat.common.utils.MessageUtil;
-import com.tjport.wechat.common.utils.po.TextMessagePo;
-import com.tjport.wechat.common.utils.po.UserInfoPo;
-import com.tjport.wechat.salary.service.ISalaryService;
-import com.tjport.wechat.sys.service.IWxUserService;
-import com.tjport.wechat.common.utils.weChatUtil;
+import com.tpitc.wechatent.common.spring.BaseController;
+import com.tpitc.wechatent.common.utils.CheckUtils;
+import com.tpitc.wechatent.common.utils.EntWeChatUtils;
+import com.tpitc.wechatent.common.utils.DbUtils;
+import com.tpitc.wechatent.common.utils.MessageUtil;
+import com.tpitc.wechatent.common.utils.po.TextMessagePo;
+import com.tpitc.wechatent.common.utils.po.UserInfoPo;
+import com.tpitc.wechatent.salary.service.ISalaryService;
+import com.tpitc.wechatent.common.utils.ase.AesException;
+import com.tpitc.wechatent.common.utils.ase.WXBizMsgCrypt;
+import com.tpitc.wechatent.common.utils.corp.UserInfo;
 
 @Controller
-@RequestMapping(value = ConnectController.BASE)
-public class ConnectController extends BaseController {
-	final static String BASE = "connect";
+@RequestMapping(value = EntController.BASE)
+public class EntController extends BaseController {
+	final static String BASE = "ent";
 	//final static String PATH = "check";
 	
 	public static final String BIND_INFO = "请您输入个人身份证号绑定个人信息！";
 	
-	@Autowired
-	private ISalaryService salaryService;
+	private static final String TOKEN = "xinxi";
+	private static final String CORP_ID = "wx166ef67e8dce57eb";
+	private static final String ENCODING_AESKEY = "J4s1zOcOqX5Efa2MWUEDkuGeCKMvvFS6AnbzbABwCLm";
 	
 	@Autowired
-	private IWxUserService wxUserService;
+	private ISalaryService salaryService;
 
 	@RequestMapping(value = "check", method = RequestMethod.GET)
-	public void checkGet (HttpServletResponse response, HttpServletRequest request) throws IOException {
+	public void checkGet (HttpServletResponse response, HttpServletRequest request) throws IOException, AesException {
 		
 		// 加密签名
-		String signature = request.getParameter("signature");
+		String msgSignature = request.getParameter("msg_signature");
 		// 时间戳
 		String timestamp = request.getParameter("timestamp");
 		// 随机数
@@ -60,16 +63,15 @@ public class ConnectController extends BaseController {
 		// 随机字符串
 		String echostr = request.getParameter("echostr");
 		
+		WXBizMsgCrypt wxcpt = new WXBizMsgCrypt(TOKEN, ENCODING_AESKEY, CORP_ID);
 		
-		if(CheckUtils.checkSingnature(signature, timestamp, nonce)){
-			PrintWriter out = response.getWriter();
-			
-			out.print(echostr);
-			out.flush();
-			out.close();
-		}
+		String sEchoStr = wxcpt.VerifyURL(msgSignature, timestamp, nonce, echostr);//echostr明文
 		
-		//return "home";
+		PrintWriter out = response.getWriter();
+		
+		out.print(sEchoStr);
+		out.flush();
+		out.close();
 	}
 	
 	
@@ -102,24 +104,19 @@ public class ConnectController extends BaseController {
 				
 			    // 设置备注
 				if(content.length() == 18){
-					 weChatUtil.setUserRemark(HomeController.token.getToken(), fromUserName, content);
+					//EntWeChatUtils.setUserRemark(HomeController.token.getToken(), fromUserName, content);
 				}
 			    if(content.contains("gz") && (content.length() == 6 || content.length() == 8)){
-                   /* UserInfoPo userInfo = weChatUtil.getUserInfo(HomeController.token.getToken(),fromUserName);
+                    UserInfo userInfo = EntWeChatUtils.getUserInfo(HomeController.token.getToken(),fromUserName);
 					
-					String hisSalary = salaryService.getBonusInfoByDateNew(userInfo.getRemark(),content.substring(2));*/
-			    	
-			    	//message = MessageUtil.initText(toUserName, fromUserName, "功能将在5月开放...");
-                    UserInfoPo userInfo = weChatUtil.getUserInfo(HomeController.token.getToken(),fromUserName);
-					
-					String hisBonus = salaryService.getBaseSalaryInfoByDate(userInfo.getRemark(),content.substring(2));
+					String hisBonus = salaryService.getBaseSalaryInfoByDate(userInfo.getUserid(),content.substring(2));
 					
 					message = MessageUtil.initText(toUserName, fromUserName, hisBonus);
 				}
 				else if(content.contains("jj") && (content.length() == 6 || content.length() == 8)){
-					UserInfoPo userInfo = weChatUtil.getUserInfo(HomeController.token.getToken(),fromUserName);
+					UserInfo userInfo = EntWeChatUtils.getUserInfo(HomeController.token.getToken(),fromUserName);
 					
-					String hisBonus = salaryService.getBonusInfoByDateNew(userInfo.getRemark(),content.substring(2));
+					String hisBonus = salaryService.getBonusInfoByDateNew(userInfo.getUserid(),content.substring(2));
 			    	
 			    	message = MessageUtil.initText(toUserName, fromUserName, hisBonus);
 				}
@@ -127,7 +124,6 @@ public class ConnectController extends BaseController {
 					message = MessageUtil.initText(toUserName, fromUserName, "查询条件输入有误，请重新输入");
 				}
 				
-				//message = MessageUtil.MessageToXml(textPo);
 			}
 			else if(MessageUtil.MESSAGE_EVENT.equals(msgType)){
 				String eventType = map.get("Event");
@@ -137,12 +133,10 @@ public class ConnectController extends BaseController {
 				else if(MessageUtil.MESSAGE_CLICK.equals(eventType)){
 					String key = map.get("EventKey");
 					// 获取用信息
-					UserInfoPo userInfo = weChatUtil.getUserInfo(HomeController.token.getToken(),fromUserName);
-					if(!userInfo.getRemark().equals("")){
+					UserInfo userInfo = EntWeChatUtils.getUserInfo(HomeController.token.getToken(),fromUserName);
+					if(!userInfo.getUserid().equals("")){
 					    if(key.equals("curSalary")){
-		    					 //reContent.append("姓名：" + new String(result.getString("name").getBytes("ISO-8859-1"), "GBK") + "\n");
-		    					 //reContent.append("公司：" + new String(result.getString("org").getBytes("ISO-8859-1"), "GBK") + "\n");
-		    				String salary = salaryService.getBaseSalaryInfo(userInfo.getRemark());
+		    				String salary = salaryService.getBaseSalaryInfo(userInfo.getUserid());
 		    				if(salary.length() != 0){
 		    				    message = MessageUtil.initText(toUserName, fromUserName, salary);
 		    				}else{
@@ -150,7 +144,7 @@ public class ConnectController extends BaseController {
 		    				}
 						}
 					    else if(key.equals("curBonus")){
-					    	String bonus = salaryService.getBonusInfo(userInfo.getRemark());
+					    	String bonus = salaryService.getBonusInfo(userInfo.getUserid());
 					    	
 					    	if(bonus.length() != 0){
 					    	    message = MessageUtil.initText(toUserName, fromUserName, bonus);
@@ -161,7 +155,7 @@ public class ConnectController extends BaseController {
 					    }
 					    else if(key.equals("hisSalary")){
 					    	message = MessageUtil.initText(toUserName, fromUserName, MessageUtil.hisSalary());
-					    	//weChatUtil.sendMessage(HomeController.token.getToken(), "o_1A9wMXvKVTDXT4BiHW8_ugEzaU", "测试");
+					    	//EntWeChatUtils.sendMessage(HomeController.token.getToken(), "o_1A9wMXvKVTDXT4BiHW8_ugEzaU", "测试");
 					    }
 					    else if(key.equals("hisBonus")){
 					    	message = MessageUtil.initText(toUserName, fromUserName, MessageUtil.hisBonus());
@@ -191,63 +185,6 @@ public class ConnectController extends BaseController {
 		}
 		
 	}
+	
 
 }
-
-
-
-/*// 连接数据库
-Connection con = null;
-Class.forName("oracle.jdbc.driver.OracleDriver");
-con = DriverManager.getConnection("jdbc:oracle:thin:@10.128.141.111:1521:spms","spms","spmsadmin");
-
-PreparedStatement pre = null;
-String sql = "select * from t_sf_d_employee where id = ?";
-pre = con.prepareStatement(sql);
-
-pre.setString(1, userInfo.getRemark());
-
-ResultSet result = null;
-result = pre.executeQuery();
-String temp = "";
-while(result.next()){
-	 System.out.println("Id:" + result.getString("id") + "姓名:"
-                + result.getString("name"));
-	 temp += result.getString("name");
-}*/
-
-
-/*if(key.equals("personal")){
-
-    if(!userInfo.getRemark().equals("")){
-		
-		Connection conn = null;
-	    PreparedStatement pre = null;
-	    
-	    conn = DbUtils.getConnection();
-	    String sql = "select ryxx.sbsbh as id, ryxx.bxm as name, dwdm.name as org from rs_d_ryjb ryxx left outer join rs_c_dwdm dwdm on ryxx.dwbm = dwdm.code where sbsbh = ?";
-		//String sql = "select ryxx.sbsbh as id, ryxx.bxm as name from sf_d_ryjb ryxx  where sbsbh = ?";
-		pre = conn.prepareStatement(sql);
-		
-		pre.setString(1, userInfo.getRemark());
-		
-		ResultSet result = null;
-		result = pre.executeQuery();
-	    
-		StringBuilder reContent = new StringBuilder();
-		while(result.next()){
-			//String name = "": 
-			 reContent.append("身份证号：" + result.getString("id") + "\n");
-			 reContent.append("姓名：" + new String(result.getString("name").getBytes("ISO-8859-1"), "GBK") + "\n");
-			 reContent.append("公司：" + new String(result.getString("org").getBytes("ISO-8859-1"), "GBK") + "\n");
-			 //reContent.append("部门：" + result.getString("dept") + "\n");
-		}
-		
-		message = MessageUtil.initText(toUserName, fromUserName, "");
-    }
-    else{
-    	message = MessageUtil.initText(toUserName, fromUserName, BIND_INFO);
-    }
-    
-}
-else */

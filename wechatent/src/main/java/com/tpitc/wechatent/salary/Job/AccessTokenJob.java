@@ -5,9 +5,9 @@ import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
-import com.tjport.wechat.common.utils.weChatUtil;
-import com.tjport.wechat.common.utils.po.AccessTokenPo;
-import com.tjport.wechat.salary.controller.HomeController;
+import com.tpitc.wechatent.common.utils.EntWeChatUtils;
+import com.tpitc.wechatent.common.utils.po.AccessTokenPo;
+import com.tpitc.wechatent.salary.controller.HomeController;
 
 public class AccessTokenJob implements Job {
 
@@ -16,7 +16,7 @@ public class AccessTokenJob implements Job {
     public void execute(JobExecutionContext context) 
             throws JobExecutionException {
     	
-        HomeController.setToken(weChatUtil.getAccessToken());//货物AccessToken
+        HomeController.setToken(EntWeChatUtils.getAccessToken());//货物AccessToken
 /*    	
         System.out.println("Hello, Quartz! - executing its JOB at "+ 
             new Date() + " by " + context.getTrigger().getCalendarName());*/

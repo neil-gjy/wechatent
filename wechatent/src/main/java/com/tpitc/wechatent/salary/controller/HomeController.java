@@ -1,4 +1,4 @@
-package com.tjport.wechat.salary.controller;
+package com.tpitc.wechatent.salary.controller;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -23,11 +23,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson.JSONObject;
-import com.tjport.wechat.common.spring.BaseController;
-import com.tjport.wechat.common.utils.DbUtils;
-import com.tjport.wechat.common.utils.weChatUtil;
-import com.tjport.wechat.common.utils.po.AccessTokenPo;
-import com.tjport.wechat.salary.Job.AccessTokenJob;
+import com.tpitc.wechatent.common.spring.BaseController;
+import com.tpitc.wechatent.common.utils.DbUtils;
+import com.tpitc.wechatent.common.utils.EntWeChatUtils;
+import com.tpitc.wechatent.common.utils.po.AccessTokenPo;
+import com.tpitc.wechatent.salary.Job.AccessTokenJob;
 
 
 @Controller
@@ -42,12 +42,12 @@ public class HomeController extends BaseController {
 	}
 	
 	static{
-        token = weChatUtil.getAccessToken();
+        token = EntWeChatUtils.getAccessToken();
 		
 		System.out.println("token:" + token.getToken());
 		System.out.println("TimeL:" + token.getExpiresIn());
 		
-		int delMenuReuslt = weChatUtil.deleteMenu(token.getToken());
+		int delMenuReuslt = EntWeChatUtils.deleteMenu(token.getToken());
 		if(delMenuReuslt == 0){
 			System.out.println("删除菜单 Success！");
 		}
@@ -55,8 +55,8 @@ public class HomeController extends BaseController {
 			System.out.println("Error Code:" + delMenuReuslt);
 		}
 		
-		String menu = JSONObject.toJSON(weChatUtil.initMenu()).toString();
-		int result = weChatUtil.createMenu(token.getToken(), menu);
+		String menu = JSONObject.toJSON(EntWeChatUtils.initMenu()).toString();
+		int result = EntWeChatUtils.createMenu(token.getToken(), menu);
 		
 		if(result == 0){
 			System.out.println("Success！");
@@ -78,13 +78,13 @@ public class HomeController extends BaseController {
 	@RequestMapping(value = "home")
 	public String sysHome( Map<String, Object> map) {
 		
-		/*token = weChatUtil.getAccessToken();
+		/*token = EntWeChatUtils.getAccessToken();
 		
 		System.out.println("token:" + token.getToken());
 		System.out.println("TimeL:" + token.getExpiresIn());
 		
-		String menu = JSONObject.toJSON(weChatUtil.initMenu()).toString();
-		int result = weChatUtil.createMenu(token.getToken(), menu);
+		String menu = JSONObject.toJSON(EntWeChatUtils.initMenu()).toString();
+		int result = EntWeChatUtils.createMenu(token.getToken(), menu);
 		
 		if(result == 0){
 			System.out.println("Success！");

@@ -1,4 +1,4 @@
-package com.tjport.wechat.salary.controller;
+package com.tpitc.wechatent.salary.controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -11,10 +11,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.tjport.wechat.common.model.Result;
-import com.tjport.wechat.common.spring.BaseController;
-import com.tjport.wechat.common.utils.weChatUtil;
-import com.tjport.wechat.sys.vo.UserVo;
+import com.tpitc.wechatent.common.model.Result;
+import com.tpitc.wechatent.common.spring.BaseController;
+import com.tpitc.wechatent.common.utils.EntWeChatUtils;
 
 
 @Controller
@@ -47,13 +46,6 @@ public class ServiceController extends BaseController {
 		map.put("openid", openid);
 		
 		return BASE + "/" + "login";
-	}
-	
-	@RequestMapping(value = "submit")
-	public Result submit(UserVo userVo){
-		Result result = null;
-		
-		return result;
 	}
 	
 

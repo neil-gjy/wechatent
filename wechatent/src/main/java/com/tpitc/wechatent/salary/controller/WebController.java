@@ -1,4 +1,4 @@
-package com.tjport.wechat.salary.controller;
+package com.tpitc.wechatent.salary.controller;
 
 import java.sql.SQLException;
 import java.util.Date;
@@ -8,9 +8,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.tjport.wechat.common.model.Result;
-import com.tjport.wechat.common.spring.BaseController;
-import com.tjport.wechat.common.utils.po.UserInfoPo;
+import com.tpitc.wechatent.common.model.Result;
+import com.tpitc.wechatent.common.spring.BaseController;
+import com.tpitc.wechatent.common.utils.po.UserInfoPo;
 
 
 @Controller

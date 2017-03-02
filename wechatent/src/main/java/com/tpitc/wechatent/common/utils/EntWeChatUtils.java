@@ -27,13 +27,15 @@ import org.apache.http.util.EntityUtils;
 
 public class EntWeChatUtils {
 	
-	private static final String CORPID = "wxf526f4da64acb9eb";
-	private static final String CORPSECRET = "94491ad6160a8f1a7c19d8014ea50765";
-	private static final String AGENTID = "1";
+	private static final String CORPID = "wx166ef67e8dce57eb";
+	private static final String CORPSECRET = "1Qchu9ceEGmaPzVVBvhVQpg_fe960WbB8Ar8ofuqbCOFHfuVu3eK2SiE9oH0gG4Y";
+	private static final String AGENTID = "2";
 	
-	private static final String ACCESS_TOKEN_URL = "https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=id&corpsecret=secrect";
+	private static final String ACCESS_TOKEN_URL = "https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=ID&corpsecret=SECRECT";
 	
 	private static final String CREATE_MENU_URL = "https://qyapi.weixin.qq.com/cgi-bin/menu/create?access_token=ACCESS_TOKEN&agentid=AGENTID";
+	
+	private static final String DELETE_MENU_URL = "https://qyapi.weixin.qq.com/cgi-bin/menu/delete?access_token=ACCESS_TOKEN&agentid=AGENTID";
 	
 	private static final String USER_INFO_URL = "https://qyapi.weixin.qq.com/cgi-bin/user/get?access_token=ACCESS_TOKEN&userid=USERID";
 	
@@ -110,7 +112,7 @@ public class EntWeChatUtils {
 	public static AccessTokenPo getAccessToken(){
 		AccessTokenPo tokenPo = new AccessTokenPo();
 		
-		String url = ACCESS_TOKEN_URL.replace("id", CORPID).replace("secrect", CORPSECRET);
+		String url = ACCESS_TOKEN_URL.replace("ID", CORPID).replace("SECRECT", CORPSECRET);
 		
 		JSONObject jsonObject = getStr(url);
 		if(jsonObject != null){
@@ -147,12 +149,44 @@ public class EntWeChatUtils {
 		hisBonusButton.setName("历史奖金");
 		hisBonusButton.setType("click");
 		hisBonusButton.setKey("hisBonus");
+
+		// 青年文明号
+		ViewButton midOneButton = new ViewButton();
+		midOneButton.setName("创建计划");
+		midOneButton.setType("view");
+		midOneButton.setUrl("http://www.tpitc.com.cn/wechat/menu/midOne");
+		
+		ViewButton midTwoButton = new ViewButton();
+		midTwoButton.setName("技术培训");
+		midTwoButton.setType("view");
+		midTwoButton.setUrl("http://www.tpitc.com.cn/wechat/menu/midTwo");
+		
+		ViewButton midThreeButton = new ViewButton();
+		midThreeButton.setName("低碳环保");
+		midThreeButton.setType("view");
+		midThreeButton.setUrl("http://www.tpitc.com.cn/wechat/menu/midThree");
+		
+		ViewButton midFourButton = new ViewButton();
+		midFourButton.setName("岗位能手");
+		midFourButton.setType("view");
+		midFourButton.setUrl("http://www.tpitc.com.cn/wechat/menu/midFour");
+		
+		ViewButton midFiveButton = new ViewButton();
+		midFiveButton.setName("岗位安全");
+		midFiveButton.setType("view");
+		midFiveButton.setUrl("http://www.tpitc.com.cn/wechat/menu/midFive");
 		
 		
-		ClickButton scanButton = new ClickButton();
-		scanButton.setName("测试扫码");
+		/*ClickButton scanButton = new ClickButton();
+		scanButton.setName("扫码");
 		scanButton.setType("scancode_push");
-		scanButton.setKey("scanCode");
+		scanButton.setKey("scanCode");*/
+		
+		
+		ClickButton bindButton = new ClickButton();
+		bindButton.setName("绑定个人信息");
+		bindButton.setType("click");
+		bindButton.setKey("bindInfo");
 		
 		ClickButton locationButton = new ClickButton();
 		locationButton.setName("地理位置");
@@ -163,7 +197,15 @@ public class EntWeChatUtils {
 		salaryButton.setName("工资查询");
 		salaryButton.setSub_button(new Button[]{curSalaryButton,curBonusButton, hisSalaryButton, hisBonusButton});
 		
-		menu.setButton(new Button[]{salaryButton,scanButton,locationButton});
+		Button midButton = new Button();
+		midButton.setName("文明号");
+		midButton.setSub_button(new Button[]{midOneButton,midTwoButton, midThreeButton, midFourButton, midFiveButton});
+		
+		Button otherButton = new Button();
+		otherButton.setName("联系我们");
+		otherButton.setSub_button(new Button[]{bindButton,locationButton});
+		
+		menu.setButton(new Button[]{salaryButton,midButton,otherButton});
 		
 		return menu;
 	}
@@ -178,6 +220,20 @@ public class EntWeChatUtils {
 		
 		if(jsonOject != null){
 			result = jsonOject.getIntValue("errorcode");
+		}
+		
+		return result;
+	}
+	
+	public static int deleteMenu(String token){
+		int result = 0;
+		
+		String url = DELETE_MENU_URL.replace("ACCESS_TOKEN", token).replace("AGENTID", AGENTID);
+		
+		JSONObject jsonObject = getStr(url);
+		
+		if(jsonObject != null){
+			result = jsonObject.getIntValue("errorcode");
 		}
 		
 		return result;

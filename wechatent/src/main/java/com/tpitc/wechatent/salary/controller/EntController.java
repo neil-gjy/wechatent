@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
+import org.apache.commons.io.IOUtils;
 import org.dom4j.DocumentException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -32,8 +33,8 @@ import com.tpitc.wechatent.common.utils.MessageUtil;
 import com.tpitc.wechatent.common.utils.po.TextMessagePo;
 import com.tpitc.wechatent.common.utils.po.UserInfoPo;
 import com.tpitc.wechatent.salary.service.ISalaryService;
-import com.tpitc.wechatent.common.utils.ase.AesException;
-import com.tpitc.wechatent.common.utils.ase.WXBizMsgCrypt;
+import com.tpitc.wechatent.common.utils.aes.AesException;
+import com.tpitc.wechatent.common.utils.aes.WXBizMsgCrypt;
 import com.tpitc.wechatent.common.utils.corp.UserInfo;
 
 @Controller
@@ -63,15 +64,20 @@ public class EntController extends BaseController {
 		// 随机字符串
 		String echostr = request.getParameter("echostr");
 		
-		WXBizMsgCrypt wxcpt = new WXBizMsgCrypt(TOKEN, ENCODING_AESKEY, CORP_ID);
+		WXBizMsgCrypt wxcpt;
+		try {  
+			wxcpt = new WXBizMsgCrypt(TOKEN, ENCODING_AESKEY, CORP_ID);
 		
-		String sEchoStr = wxcpt.VerifyURL(msgSignature, timestamp, nonce, echostr);//echostr明文
+			String sEchoStr = wxcpt.VerifyURL(msgSignature, timestamp, nonce, echostr);//echostr明文
 		
-		PrintWriter out = response.getWriter();
-		
-		out.print(sEchoStr);
-		out.flush();
-		out.close();
+			PrintWriter out = response.getWriter();
+			
+			out.print(sEchoStr);
+			out.flush();
+			out.close();
+		}catch (AesException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	
@@ -81,10 +87,30 @@ public class EntController extends BaseController {
 		request.setCharacterEncoding("UTF-8");
 		response.setCharacterEncoding("UTF-8");
 		
+		// 加密签名
+		String msgSignature = request.getParameter("msg_signature");
+		// 时间戳
+		String timestamp = request.getParameter("timestamp");
+		// 随机数
+		String nonce = request.getParameter("nonce");
+		
+		InputStream inputStream = request.getInputStream();
+		String postData = IOUtils.toString(inputStream, "UTF-8");
+		
+		String msg = "";
+		WXBizMsgCrypt wxcpt = null;
+		try { 
+			wxcpt = new WXBizMsgCrypt(TOKEN, ENCODING_AESKEY, CORP_ID);
+			
+			msg = wxcpt.DecryptMsg(msgSignature, timestamp, nonce, postData);
+		} catch (AesException e) { 
+			e.printStackTrace();
+		}
+		
 		PrintWriter out = response.getWriter();
 		
 		try{
-			Map<String,String> map = MessageUtil.parseXml(request);
+			Map<String,String> map = MessageUtil.parseXml(msg);
 			
 			String fromUserName = map.get("FromUserName");
 			String toUserName = map.get("ToUserName");
@@ -178,8 +204,16 @@ public class EntController extends BaseController {
 				}
 				
 			}
+			
+			String encryptMsg = "";
+			try {
+				//加密回复消息
+				encryptMsg = wxcpt.EncryptMsg(message, timestamp, nonce);
+			} catch (AesException e) {
+				e.printStackTrace();
+			}
 		    
-			out.print(message);
+			out.print(encryptMsg);
 		}catch(DocumentException e){
 			e.printStackTrace();
 		}

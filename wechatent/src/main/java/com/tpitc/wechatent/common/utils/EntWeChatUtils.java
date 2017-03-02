@@ -246,10 +246,10 @@ public class EntWeChatUtils {
 	 * @param openid
 	 * @return
 	 */
-	public static UserInfo getUserInfo(String token, String openid){
+	public static UserInfo getUserInfo(String token, String userid){
 		UserInfo userInfo = new UserInfo();
 		
-		String url = USER_INFO_URL.replace("ACCESS_TOKEN", token).replace("OPENID", openid);
+		String url = USER_INFO_URL.replace("ACCESS_TOKEN", token).replace("USERID", userid);
 		
 		JSONObject jsonObject = getStr(url);
 		

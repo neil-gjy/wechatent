@@ -1,5 +1,6 @@
 package com.tpitc.wechatent.common.utils;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
@@ -32,7 +33,7 @@ public class MessageUtil {
 	public static final String MESSAGE_EVENT = "event";
 	public static final String MESSAGE_SUBSCRIBE = "subscribe";
 	public static final String MESSAGE_UNSUBSCRIBE = "unsubscribe";
-	public static final String MESSAGE_CLICK = "CLICK";
+	public static final String MESSAGE_CLICK = "click";
 	public static final String MESSAGE_VIEW = "view";
 	
 	
@@ -63,6 +64,41 @@ public class MessageUtil {
 		inputStream = null;
 		
 		return map;	
+	}
+	
+	/**
+	 * 解析微信发来的请求（XML）
+	 * 
+	 * @param request
+	 * @return
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	public static Map<String, String> parseXml(String msg)
+			throws Exception {
+		// 将解析结果存储在HashMap中
+		Map<String, String> map = new HashMap<String, String>();
+
+		// 从request中取得输入流
+		InputStream inputStream = new ByteArrayInputStream(msg.getBytes("UTF-8"));
+		
+		// 读取输入流
+		SAXReader reader = new SAXReader();
+		Document document = reader.read(inputStream);
+		// 得到xml根元素
+		Element root = document.getRootElement();
+		// 得到根元素的所有子节点
+		List<Element> elementList = root.elements();
+
+		// 遍历所有子节点
+		for (Element e : elementList)
+			map.put(e.getName(), e.getText());
+
+		// 释放资源
+		inputStream.close();
+		inputStream = null;
+
+		return map;
 	}
 	
 	/**
